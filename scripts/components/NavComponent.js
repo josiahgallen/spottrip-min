@@ -24,7 +24,7 @@ module.exports = React.createClass({
 			dropDownLinks.push(<li key="profileLink"><a href="#profile">Profile</a></li>);
 			dropDownLinks.push(<li key="separator1" role="separator" className="divider"></li>);
 			dropDownLinks.push(<li key="logoutLink"><a href="#" onClick={this.logout}>Logout</a></li>);
-			links.push(<li key="newTrip"><a href="#profile">Create New Trip</a></li>);
+			links.push(<li key="newTrip"><button id="createATripButton"><a href="#profile">Create New Trip</a></button></li>);
 		} else {
 			dropDownLinks.push(<li key="registerLink"><a href="#register">Register</a></li>);
 			dropDownLinks.push(<li key="loginLink"><a href="#login">Login</a></li>);

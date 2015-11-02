@@ -4,6 +4,7 @@ var ReactDOM = require('react-dom');
 var SpotModel = require('../models/SpotModel');
 var AddMediaComponent = require('./AddMediaComponent');
 var BreadCrumbsBarComponent = require('./BreadCrumbsBarComponent');
+var AddJournalEntryComponent = require('./AddJournalEntryComponent');
 var PictureModel = require('../models/PictureModel');
 var JournalEntryModel = require('../models/JournalEntryModel');
 var Backbone = require('backbone');
@@ -46,32 +47,8 @@ module.exports = React.createClass({
 				console.log(err);
 			}
 		)
-		var journalQuery = new Parse.Query(JournalEntryModel);
-		journalQuery.equalTo('spotId', new SpotModel({objectId: this.props.spot})).find().then(
-			(entries) => {
-				this.setState({journalEntries: entries});
-			},
-			(err) => {
-				console.log(err);
-			}
-		)
-		this.dispatcher.on('entryAdded', (entry) => {
-			this.state.journalEntries.push(entry);
-			this.setState({journalEntries: this.state.journalEntries});
-		})
 	},
 	render: function() {
-		var entries = [];
-		entries = this.state.journalEntries.map(function(entry) {
-			return(
-				<div key={entry.id} className="entryWrapper">
-					<a href="#" className="caption">
-						<h3>{entry.get('title').toUpperCase()}</h3>
-						<p>{entry.get('entry').substring(0,139)+'...'}</p>
-					</a>
-				</div>
-			)
-		});
 		return (
 			<div>
 				<h1 className="pageHeader">{this.state.spot ? this.state.spot.get('spotName') : ''}</h1>
@@ -80,20 +57,19 @@ module.exports = React.createClass({
 					<li><a href={this.state.spot ? '#trip/'+this.state.spot.get('tripId').id : '#trip'}>My Trip</a></li>
 					<li className="active">My Spot</li>
 				</BreadCrumbsBarComponent>
-				<div className="row col-xs-offset-1">
-					<div id="spotMap" ref="map" className="col-xs-10 col-sm-3 "></div>
-					<div className="entryContainer col-xs-10 col-sm-7">
-						{entries}
-					</div>
+				<div className="row col-xs-offset-2">
+					<div id="spotMap" ref="map" className="col-xs-9"></div>
+					
 				</div>
 				<div className="addMediaButtonsWrapper navbar-fixed-bottom">
-					<button onClick={this.onModalShow} type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
-					<button onClick={this.onPicModalShow} type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-camera" aria-hidden="true"></span></button>
+					<button onClick={this.onModalShow} title="Add Journal Entry" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
+					<button onClick={this.onPicModalShow} title="Add Photo" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-camera" aria-hidden="true"></span></button>
 				</div>
 				<AddMediaComponent dispatcher={this.dispatcher} picture={this.state.newPic} onFullPicModalShow={this.onFullPicModalShow} onPicModalShow={this.onPicModalShow} onModalShow={this.onModalShow} spot={this.props.spot} />
+				<AddJournalEntryComponent dispatcher={this.dispatcher} entry={this.state.newEntry} spot={this.props.spot}/>
 				<div ref="myModal"id="myModal" className="modal fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
 					<div className="modal-dialog modal-lg">
-						<div className="modal-content">
+						<div className="modal-content inputModal">
 							<h1>Journal Entry</h1>
 							<hr/>
 							<form>
@@ -105,24 +81,24 @@ module.exports = React.createClass({
 								</div>
 							</form>
 							 <div className="modal-footer">
-								<button type="button" className="btn btn-default" data-dismiss="modal">Cancel</button>
+								<button type="button" className="btn btn-default cancel" data-dismiss="modal">Cancel</button>
 								<button onClick={this.addJournalEntry} type="button" className="btn btn-primary">Add Entry</button>
 							</div>
 						</div>
 					</div>
 				</div>
-				<div ref="picModal"id="myModal" className="modal fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
-					<div className="modal-dialog modal-lg">
-						<div className="modal-content">
+				<div ref="picModal"id="myModal" className="modal fade bs-example-modal-sm" tabIndex="-1" role="dialog" ariaLabelledby="mySmallModalLabel">
+					<div className="modal-dialog modal-sm">
+						<div className="modal-content inputModal">
 							<h1>Upload Photos</h1>
 							<hr/>
 							<form>
+								<input type="text" maxLength="20" className="form-control" ref="title" placeholder="title"/>
+								<textarea maxLength="50" className="form-control" rows="2" ref="caption" placeholder="caption(limit to 50 characters)"/>
 								<input type="file" className="fileUpload" ref="addPicture"/>
-								<input type="text" ref="title" placeholder="title"/>
-								<input type="text" ref="caption" placeholder="caption"/>
 							</form>
 							<div className="modal-footer">
-								<button onClick={this.addPicture} className="btn btn-primary">UploadPicture</button>
+								<button onClick={this.addPicture} className="btn btn-primary">Upload Photo</button>
 							</div>
 						</div>
 					</div>
@@ -147,6 +123,7 @@ module.exports = React.createClass({
 		})
 		newEntry.save().then(
 			(entry) => {
+				this.setState({newEntry: entry})
 				this.dispatcher.trigger('entryAdded', entry);
 			}
 		);

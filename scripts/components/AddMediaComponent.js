@@ -39,11 +39,5 @@ module.exports = React.createClass({
 				</div>
 			</div>
 		);
-	},
-	addPic: function() {
-		this.props.onPicModalShow();
-	},
-	addBlog: function() {
-		this.props.onModalShow();
 	}
 });
