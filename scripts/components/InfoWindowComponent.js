@@ -5,14 +5,14 @@ module.exports = React.createClass({
 	render: function() {
 		return (
 			<div>
-				<form onSubmit={this.addLocation}>
-					<input ref="tripTitle" type="text" placeholder="Title"/>
+				<form onSubmit={this.addLocation}><br/>
+					<input className="infoWindowInput" ref="tripTitle" type="text" placeholder="Title"/>
 					<label>{this.props.address.formatted_address}</label><br/>
-					<input ref="startDate" type="date"/>
+					<input className="infoWindowInput" ref="startDate" type="date"/>
 					<label>Trip Start </label><br/>
-					<input ref="endDate" type="date"/>
+					<input className="infoWindowInput" ref="endDate" type="date"/>
 					<label> Trip End </label><br/>
-					<button>Add</button>
+					<button className="infoWindowAddButton">Add</button>
 				</form>
 			</div>
 		);

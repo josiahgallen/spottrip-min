@@ -19,7 +19,7 @@ module.exports = React.createClass({
 		}
 
 		var loginForm = (
-			<div className="well well-lg col-xs-12 col-sm-8 col-sm-offset-2">
+			<div className="well well-lg col-xs-12 col-sm-8 col-sm-offset-2 logReg">
 				<h1>Login</h1>
 				{error}
 				<form onSubmit={this.onLogin}>
@@ -31,11 +31,11 @@ module.exports = React.createClass({
 						<label htmlFor="exampleInputPassword1"><span className="glyphicon glyphicon-barcode" aria-hidden="true"></span></label>
 						<input type="password" ref="password" className="form-control" id="exampleInputPassword1" placeholder="Password" />
 					</div>
-					<button type="submit" className="btn btn-default"><strong>Submit</strong></button>
+					<button type="submit" className="featureButton register"><strong>Submit</strong></button>
 				</form>
 			</div>);
 		var registerForm = (
-			<div className="well well-lg col-xs-12 col-sm-8 col-sm-offset-2">
+			<div className="well well-lg col-xs-12 col-sm-8 col-sm-offset-2 logReg">
 				<h1>Register</h1>
 				{error}
 				<br/>
@@ -57,7 +57,7 @@ module.exports = React.createClass({
 						<input type="password" ref="password" className="form-control" id="exampleInputPassword1" placeholder="Password" />
 					</div>
 					<div className="form-group col-xs-12">
-						<button type="submit" className="btn btn-default"><strong>Submit</strong></button>
+						<button type="submit" className="featureButton register"><strong>Submit</strong></button>
 					</div>
 				</form>
 			</div>

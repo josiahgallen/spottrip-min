@@ -12,6 +12,7 @@ var LoginRegisterComponent = require('./components/LoginRegisterComponent');
 var ProfileComponent = require('./components/ProfileComponent');
 var TripsComponent = require('./components/TripComponent');
 var SpotComponent = require('./components/SpotComponent');
+var CommunityPageComponent = require('./components/CommunityPageComponent');
 
 Parse.initialize('SReTPFlNUeFnSqrBx33yNVHKDqR0jrY6BB2l6E47','XGMgOrJcA5H1O3jc7OwPVyt0n9oo6BXiJsD7Gptm');
 
@@ -24,7 +25,8 @@ var Router = Backbone.Router.extend({
 		'register': 'register',
 		'profile': 'profile',
 		'trip/:id': 'trip',
-		'spot/:id': 'spot'
+		'spot/:id': 'spot',
+		'community': 'community'
 	},
 	home: function() {
 		ReactDOM.render(<HomePageComponent router={r}/>,document.getElementById('app'));
@@ -43,6 +45,9 @@ var Router = Backbone.Router.extend({
 	},
 	spot: function(id) {
 		ReactDOM.render(<SpotComponent spot={id} router={r}/>,document.getElementById('app'));
+	},
+	community: function() {
+		ReactDOM.render(<CommunityPageComponent router={r}/>,document.getElementById('app'));
 	}
 })
 

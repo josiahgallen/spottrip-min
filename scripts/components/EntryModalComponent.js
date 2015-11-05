@@ -9,8 +9,8 @@ module.exports = React.createClass({
 	},
 	render: function() {
 		return (
-			<div key={this.props.entry.id}>
-				<div className="entryWrapper col-xs-10 col-sm-10 col-md-10 col-lg-5">
+			<div key={this.props.entry.id} className="col-xs-11 col-md-5">
+				<div className="entryWrapper blogThumbnail">
 					<a onClick={this.onFullPicShow} className="caption">
 						<h3>{this.props.entry.get('title').toUpperCase()}</h3>
 						<p>{this.props.entry.get('entry').substring(0,139)+'...'}</p>
