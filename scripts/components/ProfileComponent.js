@@ -25,7 +25,8 @@ module.exports = React.createClass({
 					var marker = new google.maps.Marker({
 						position: myLatLng,
 						map: this.state.map,
-						title: marker.get('tripName')
+						title: marker.get('tripName'),
+						animation: google.maps.Animation.DROP
 					});
 					var infowindow = new google.maps.InfoWindow({
 						content: tripName

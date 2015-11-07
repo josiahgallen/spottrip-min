@@ -4,11 +4,12 @@ var ReactDOM = require('react-dom');
 var TripModel = require('../models/TripModel');
 var SpotModel = require('../models/SpotModel');
 var PictureModel = require('../models/PictureModel');
+var JournalEntryModel = require('../models/JournalEntryModel');
 var PictureModalComponent = require('./PictureModalComponent');
+var EntryModalComponent = require('./EntryModalComponent');
 var BreadCrumbsBarComponent = require('./BreadCrumbsBarComponent');
 var InfoWindowComponent = require('./InfoWindowComponent');
 var SpotsPortalComponent = require('./TripsNSpotsPortalComponent');
-
 
 module.exports = React.createClass({
 	getInitialState: function() {
@@ -16,10 +17,14 @@ module.exports = React.createClass({
 			trip: null,
 			spots: [],
 			newSpot: null,
-			pictures: []
+			pictures: [],
+			entries: []
 		}
 	},
 	componentWillMount: function() {
+		$('#myModal').on('shown.bs.modal', function () {
+			$('#myInput').show()
+		})
 		var query = new Parse.Query(TripModel);
 		query.get(this.props.trip).then(
 			(trip) => {
@@ -34,23 +39,23 @@ module.exports = React.createClass({
 		spotQuery.equalTo('tripId', new TripModel({objectId: this.props.trip})).find().then(
 			(spots) => {
 				spots.forEach((spot) => {
-					//console.log(spot.get('tripId').get('marker').latitude);
 					var myLatLng = {lat: spot.get('spotMarker').latitude, lng: spot.get('spotMarker').longitude};
 					var mapCenter = {lat: spot.get('tripId').get('marker').latitude, lng: spot.get('tripId').get('marker').longitude};
 					var infoContent = '<h4>'+spot.get('spotName')+'</h4><p>'+spot.get('address')+'<br>'+spot.get('spotDateStart').toDateString()+' - '+spot.get('spotDateEnd').toDateString()+'</p><a href=#spot/'+spot.id+'>Post to my Spot</a>';
 					var marker = new google.maps.Marker({
-    					position: myLatLng,
-    					map: this.state.map,
-    					title: spot.get('spotName')
-  					});
-  					var infowindow = new google.maps.InfoWindow({
-    					content: infoContent
-  					});
-  					marker.addListener('click', () => {
-    					infowindow.open(this.state.map, marker);
-  					});
+						position: myLatLng,
+						map: this.state.map,
+						title: spot.get('spotName'),
+						animation: google.maps.Animation.DROP
+					});
+					var infowindow = new google.maps.InfoWindow({
+						content: infoContent
+					});
+					marker.addListener('click', () => {
+						infowindow.open(this.state.map, marker);
+					});
 				})
-				this.setState({spots: spots})
+				this.setState({spots: spots});
 			},
 			(err) => {
 				console.log(err);
@@ -65,6 +70,15 @@ module.exports = React.createClass({
 				console.log(err);
 			}
 		)
+		var journalQuery = new Parse.Query(JournalEntryModel);
+		journalQuery.equalTo('tripId', new TripModel({objectId: this.props.trip})).find().then(
+			(entries) => {
+				this.setState({entries: entries});
+			},
+			(err) => {
+				console.log(err);
+			}
+		)
 	},
 	componentDidMount: function() {
 		var self = this;
@@ -72,7 +86,6 @@ module.exports = React.createClass({
 			tripPoint.lat = this.state.spots.get('tripId').get('marker').latitude;
 			tripPoint.lng = this.state.spots.get('tripId').get('marker').longitude;
 		}
-		//var mapCenter = {lat: spot.get('spotMarker').latitude, lng: spot.get('spotMarker').longitude};
 		var mapCenter = {lat: 25, lng: -30};
 
 		var geocoder = new google.maps.Geocoder();
@@ -112,6 +125,9 @@ module.exports = React.createClass({
 		var myList = [];
 		var newSpot = [];
 		var pictures = [];
+		var pictureList = [];
+		var entries = [];
+		
 		myList = this.state.spots.map(function(spot) {
 			return(
 				<a key={spot.id} href={'#spot/'+spot.id} className="list-group-item"><strong>{spot.get('spotName')}</strong><div>{spot.get('spotDateStart').toDateString()} thru {spot.get('spotDateEnd').toDateString()}</div></a>
@@ -121,6 +137,16 @@ module.exports = React.createClass({
 			return(
 				<PictureModalComponent picture={picture} key={picture.id}/>
 
+			)
+		})
+		pictureList = this.state.pictures.map(function(picture){
+			return(
+				<option key={picture.id} value={picture.id}>{picture.get('title')}</option>
+			)
+		})
+		entries = this.state.entries.map(function(entry) {
+			return(
+				<EntryModalComponent entry={entry} key={entry.id} />
 			)
 		})
 		this.state.newSpot ? newSpot = (<a key={this.state.newSpot.id} href={'#spot/'+this.state.newSpot.id} className="list-group-item"><strong>{this.state.newSpot.get('spotName')}</strong><div>{this.state.newSpot.get('spotDateStart').toDateString()} thru {this.state.newSpot.get('spotDateEnd').toDateString()}</div></a>): newSpot = [];
@@ -138,13 +164,83 @@ module.exports = React.createClass({
 				<div className="row">
 					{pictures}
 				</div>
+				<div className="row">
+					<div className="col-xs-offset-1 col-md-offset-2">
+						{entries}
+					</div>
+				</div>
 				<div className="addMediaButtonsWrapper">
-					<button onClick={this.editTrip} title="Add Journal Entry" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-cog" aria-hidden="true"></span></button>
+					<button onClick={this.editTrip} title="Edit Trip" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-cog" aria-hidden="true"></span></button>
 					<br/>
-					<button onClick={this.deleteTrip} title="Add Photo" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+					<button onClick={this.deleteModal} title="Delete Trip" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+				</div>
+				<div id="modaly" className="modal modaly fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
+					<div className="modal-dialog modal-lg">
+						<div className="modal-content inputModal">
+							<h1>Edit</h1>
+							<hr/>
+							<form>
+								<div className="form-group xs-col-6">
+									<label>Change Trip Name</label>
+									<input type="text" ref="editTripTitle" className="form-control" id="blogTitle" />
+								</div>
+								<div className="form-group xs-col-6">
+									<label>Trip Start </label>
+									<input ref="startDate" type="date"/>
+									<label> Trip End </label>
+									<input ref="endDate" type="date"/>
+								</div>
+								<div className="form-group xs-col-6">
+									<label>Select Trip Feature Pic</label>
+									<select ref="feature" className="form-control">
+										{pictureList}
+									</select>
+								</div>
+							</form>
+							 <div className="modal-footer">
+								<button onClick={this.closeModal} type="button" className="btn btn-default cancel" data-dismiss="modal">Cancel</button>
+								<button onClick={this.changeTripInfo} type="button" className="btn btn-primary">Save</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="modelier" className="modal modaly fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
+					<div className="modal-dialog modal-lg">
+						<div className="modal-content inputModal">
+							<h1>Remove Trip</h1>
+							<hr/>
+							<div className="alert alert-danger" role="alert">
+								<p>
+									Warning all Spots, Pictures, and Journals associated with this Trip will be permanetly removed! (enter trip name to confirm)
+								</p>
+								<br/>
+								<div className="form-group">
+    								<label htmlFor="exampleInputEmail1">Trip Name</label>
+    								<input type="text" ref="deleteConfirm" className="form-control" id="exampleInputEmail1"/>
+  								</div>
+							</div>
+							<div className="modal-footer">
+								<button onClick={this.closeOtherModal} type="button" className="btn btn-default cancel" data-dismiss="modal">Cancel</button>
+								<button onClick={this.deleteTrip} className="btn btn-primary">Destroy Forever</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		);
+	},
+	changeTripInfo: function() {
+		console.log('changing');
+		console.log(this.refs.feature.value);
+		this.state.trip.save({
+			tripId: this.state.trip.id,
+			tripName: this.refs.editTripTitle.value === '' ? this.state.trip.get('tripName') : this.refs.editTripTitle.value,
+			tripStart: this.refs.startDate.value === '' ? new Date (this.state.trip.get('tripStart')) : new Date (this.refs.startDate.value),
+			tripEnd: this.refs.endDate.value === '' ? new Date (this.state.trip.get('tripEnd')) : new Date (this.refs.endDate.value),
+			featurePic: new PictureModel({objectId: this.refs.feature.value})
+		})
+		$('#modaly').modal('hide');
+		this.forceUpdate();
 	},
 	addNewLocation: function(address,tripTitle,startDate,endDate) {
 		var newSpot = new SpotModel({
@@ -160,18 +256,18 @@ module.exports = React.createClass({
 				var myLatLng = {lat: spot.get('spotMarker').latitude, lng: spot.get('spotMarker').longitude};
 					var spotName = '<h4>'+spot.get('spotName')+'</h4><p>'+spot.get('address')+'<br>'+spot.get('spotDateStart').toDateString()+' thru '+spot.get('spotDateEnd').toDateString()+'</p><a href=#spot/'+spot.id+'>Add to Spot</a>';
 					var marker = new google.maps.Marker({
-    					position: myLatLng,
-    					map: this.state.map,
-    					title: spot.get('spotName')
-  					});
-  					var infowindow = new google.maps.InfoWindow({
-    					content: spotName
-  					});
-  					marker.addListener('click', () => {
-    					infowindow.open(this.state.map, marker);
-  					});
-  					this.setState({newSpot: spot});
-  					this.props.router.navigate('#spot/'+spot.id, {trigger: true});
+						position: myLatLng,
+						map: this.state.map,
+						title: spot.get('spotName')
+					});
+					var infowindow = new google.maps.InfoWindow({
+						content: spotName
+					});
+					marker.addListener('click', () => {
+						infowindow.open(this.state.map, marker);
+					});
+					this.setState({newSpot: spot});
+					this.props.router.navigate('#spot/'+spot.id, {trigger: true});
 			},
 			(err) => {
 				console.log(err);
@@ -179,15 +275,39 @@ module.exports = React.createClass({
 		);
 	},
 	editTrip: function() {
-		console.log('edit');
+		$('#modaly').modal('show');
+	},
+	deleteModal: function() {
+		$('#modelier').modal('show');
 	},
 	deleteTrip: function() {
-		console.log('delete');
-		var answer = prompt('Are you sure you want to permanetly remove this Trip?(enter trip name to confirm)');
-		console.log(answer);
-		console.log(this.state.trip.get('tripName'));
+		console.log('start delete');
+		var answer = this.refs.deleteConfirm.value;
 		if(answer === this.state.trip.get('tripName')) {
-			console.log('destroyed!');
+			Parse.Object.destroyAll(this.state.entries,{
+				success: function(entry) {
+					console.log('all journal entries destroyed')
+				},
+				error: function(err) {
+					console.log(err);
+				}
+			});
+			Parse.Object.destroyAll(this.state.pictures,{
+				success: function(picture) {
+					console.log('all pictures destroyed')
+				},
+				error: function(err) {
+					console.log(err);
+				}
+			});
+			Parse.Object.destroyAll(this.state.spots,{
+				success: function(spot) {
+					console.log('all spots destroyed')
+				},
+				error: function(err) {
+					console.log(err);
+				}
+			});
 			this.state.trip.destroy({
 				success: function(object) {
 					console.log(object, ' has been permanetly deleted');
@@ -195,9 +315,16 @@ module.exports = React.createClass({
 				error: function(object) {
 					console.log('error deleting ', object)
 				}
-
 			})
+			$('#modelier').modal('hide');
+			this.props.router.navigate('#profile', {trigger: true});
 		}
+	},
+	closeModal: function() {
+		$('#modaly').modal('hide');
+	},
+	closeOtherModal: function() {
+		$('#modelier').modal('hide');	
 	}
 	
 });

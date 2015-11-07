@@ -11,6 +11,7 @@ module.exports = React.createClass({
 	componentWillMount: function() {
 		var query = new Parse.Query(TripModel);
 		query.include('userId');
+		query.include('featurePic');
 		query.descending('createdAt').find().then (
 			(trips) => {
 				this.setState({trips: trips});
@@ -24,18 +25,22 @@ module.exports = React.createClass({
 		var trips = [];
 		trips = this.state.trips.map(function(trip) {
 			return(
-				<div key={trip.id} className="communityTile" style={{backgroundImage: 'url(../images/mapPic.png)'}}>
-					<a href={'#trip/'+trip.id} className="caption">
-						<h3>{trip.get('tripName').toUpperCase()}</h3>
-						<p>{trip.get('tripStart').toDateString()+' - '+trip.get('tripEnd').toDateString()}</p>
-						<p>Trip added by user: {trip.get('userId').get('firstName')+' '+trip.get('userId').get('lastName').substr(0,1)}</p>
-					</a>
+				<div key={trip.id} className="col-md-4">
+					<div className="entryWrapper frontPageTripTile" style={trip.get('featurePic')? {backgroundImage: 'url('+trip.get('featurePic').get('picture').url()+')'} : {backgroundImage: 'url(../images/mapPic.png)'}}>
+						<div>
+							<a href={'#trip/'+trip.id} className="caption">
+								<h3>{trip.get('tripName').toUpperCase()}</h3>
+								<p>{trip.get('tripStart').toDateString()+' - '+trip.get('tripEnd').toDateString()}</p>
+								<p>Trip shared by SpotTraveler: {trip.get('userId').get('firstName')+' '+trip.get('userId').get('lastName').substr(0,1)}</p>
+							</a>
+						</div>
+					</div>
 				</div>
 			)
 		})
 		return (
 			<div>
-				<h1 className="pageHeader">Community Page</h1>
+				<h1 className="pageHeader">SpotTrip Community</h1>
 				<div className="row">
 						<div className="col-xs-offset-1 col-xs-10">
 							{trips}

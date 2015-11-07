@@ -14,6 +14,7 @@ module.exports = React.createClass({
 		var journalQuery = new Parse.Query(JournalEntryModel);
 		journalQuery.equalTo('spotId', new SpotModel({objectId: this.props.spot})).find().then(
 			(entries) => {
+				this.props.onEntryQuery(entries);
 				this.setState({journalEntries: entries});
 			},
 			(err) => {

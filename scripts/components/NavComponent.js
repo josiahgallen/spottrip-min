@@ -17,7 +17,7 @@ module.exports = React.createClass({
 	render: function() {
 		var currentUser = Parse.User.current();
 		var dropDownLinks = [];
-		var links = [<li key="community"><a href="#community">SpotTrip Community</a></li>];
+		var links = [<li key="community"><a href="#community">Community</a></li>];
 		
 
 		if(Parse.User.current()) {
@@ -64,7 +64,4 @@ module.exports = React.createClass({
 		this.props.router.navigate('', {trigger: true});
 		console.log('logout');
 	}
-	// backToTrip: function(id) {
-	// 	this.props.router.navigate('trip/'+id, {trigger: true})
-	// }
 });

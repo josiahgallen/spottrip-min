@@ -18,6 +18,7 @@ module.exports = React.createClass({
 		var picQuery = new Parse.Query(PictureModel);
 		picQuery.equalTo('spotId', new SpotModel({objectId: this.props.spot})).find().then(
 			(pictures) => {
+				this.props.onPictureQuery(pictures);
 				this.setState({pictures: pictures})
 			},
 			(err) => {
