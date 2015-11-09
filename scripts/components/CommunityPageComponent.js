@@ -25,7 +25,7 @@ module.exports = React.createClass({
 		var trips = [];
 		trips = this.state.trips.map(function(trip) {
 			return(
-				<div key={trip.id} className="col-md-4">
+				<div key={trip.id} className="col-sm-6 col-md-4">
 					<div className="entryWrapper frontPageTripTile" style={trip.get('featurePic')? {backgroundImage: 'url('+trip.get('featurePic').get('picture').url()+')'} : {backgroundImage: 'url(../images/mapPic.png)'}}>
 						<div>
 							<a href={'#trip/'+trip.id} className="caption">

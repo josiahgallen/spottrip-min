@@ -59,6 +59,23 @@ module.exports = React.createClass({
 	render: function() {
 		var pictureList = [];
 		var entryList = [];
+		var slides = [];
+
+		slides = this.state.pictures.map(function(picture, index){
+			var classNameString = 'item personalItem';
+			if(index === 0) {
+				classNameString += ' active';
+			}
+			return(
+				<div className={classNameString} key={picture.id}>
+					<img className="personalCarouselPic" src={picture.get('picture').url()}/>
+					<div className="carousel-caption">
+						<h3>{picture.get('title').toUpperCase()}</h3>
+						<p>{picture.get('caption')}</p>
+					</div>
+				</div>
+			)
+		})
 		
 		pictureList = this.state.pictures.map(function(picture){
 			return(
@@ -84,11 +101,13 @@ module.exports = React.createClass({
 					</div>
 				</div>
 				<div className="addMediaButtonsWrapper">
+					<button onClick={this.onSlideShow} title="Launch Slide Show" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-blackboard" aria-hidden="true"></span></button>
+					<br/>
 					<button onClick={this.onModalShow} title="Add Journal Entry" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
 					<br/>
 					<button onClick={this.onPicModalShow} title="Add Photo" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-camera" aria-hidden="true"></span></button>
 					<br/>
-					<button onClick={this.editTrip} title="Edit Spot" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-cog" aria-hidden="true"></span></button>
+					<button onClick={this.editTrip} title="Edit Spot" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
 					<br/>
 					<button onClick={this.deleteModal} title="Delete Spot" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 				</div>
@@ -195,6 +214,28 @@ module.exports = React.createClass({
 							<div className="modal-footer">
 								<button onClick={this.closeOtherModal} type="button" className="btn btn-default cancel" data-dismiss="modal">Cancel</button>
 								<button onClick={this.deleteTrip} className="btn btn-danger">Destroy Forever</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="slideShowModal" className="modal modaly fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
+					<div className="modal-dialog modal-lg">
+						<div className="modal-content inputModal slideShowModal">
+							
+							<div id="carousel-example-generic" className="carousel slide" data-ride="carousel">
+								
+								<div className="carousel-inner" role="listbox">
+									{slide1}
+									{slides}
+								</div> 
+								<a className="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+									<span className="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+									<span className="sr-only">Previous</span>
+								</a>
+								<a className="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+									<span className="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+									<span className="sr-only">Next</span>
+								</a>
 							</div>
 						</div>
 					</div>
@@ -310,6 +351,9 @@ module.exports = React.createClass({
 			this.setState({needChange: 1});
 		}
 	},
+	onSlideShow: function() {
+		$('#slideShowModal').modal('show');
+	},
 	onPictureQuery: function(pictures) {
 		this.setState({pictures: pictures})
 	},
@@ -375,6 +419,7 @@ module.exports = React.createClass({
 		var formatTitle = this.refs.title.value.split(' ').join('');
 		formatTitle.length > 0 ? picLabel = formatTitle : picLabel = 'picture';
 		var parseFile = new Parse.File(picLabel+'.png',file);
+		console.log('addPicture', this.props.spot);
 		var pic = new PictureModel({
 			spotId: new SpotModel({objectId:this.props.spot}),
 			title: this.refs.title.value,

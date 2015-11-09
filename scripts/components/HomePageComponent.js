@@ -23,12 +23,6 @@ module.exports = React.createClass({
 		)
 	},
 	render: function() {
-		//console.log(Parse.User.current().get('travelStats'));
-		// var stats = [];
-		// stats = Parse.User.current().get('totalTrips');
-		// console.log(stats);
-
-		
 		var trips = [];
 		trips = this.state.trips.map(function(trip) {
 			return(

@@ -171,7 +171,7 @@ module.exports = React.createClass({
 					</div>
 				</div>
 				<div className="addMediaButtonsWrapper">
-					<button onClick={this.editTrip} title="Edit Trip" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-cog" aria-hidden="true"></span></button>
+					<button onClick={this.editTrip} title="Edit Trip" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
 					<br/>
 					<button onClick={this.deleteModal} title="Delete Trip" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
 				</div>
