@@ -5,6 +5,7 @@ var Backbone = require('backbone');
 var InfoWindowComponent = require('./InfoWindowComponent');
 var BreadCrumbsBarComponent = require('./BreadCrumbsBarComponent');
 var TripModel = require('../models/TripModel');
+var StatsModel = require('../models/StatsModel');
 var TripsPortalComponent = require('./TripsNSpotsPortalComponent');
 
 module.exports = React.createClass({
@@ -117,21 +118,35 @@ module.exports = React.createClass({
 		newTrip.save().then(
 			(trip) => {
 				var myLatLng = {lat: trip.get('marker').latitude, lng: trip.get('marker').longitude};
-					var tripName = '<h4>'+trip.get('tripName')+'</h4><p>'+trip.get('address')+'<br>'+trip.get('tripStart').toDateString()+' thru '+trip.get('tripEnd').toDateString()+'</p><a href=#trip/'+trip.id+'>Edit Trip</a>';
-					var marker = new google.maps.Marker({
-						position: myLatLng,
-						map: this.state.map,
-						title: trip.get('tripName')
-					});
-					var infowindow = new google.maps.InfoWindow({
-						content: tripName
-					});
-					marker.addListener('click', () => {
-						infowindow.open(this.state.map, marker);
-					});
-					this.setState({newTrip: trip});
-					Parse.User.current().get('travelStats')
-					this.props.router.navigate('#trip/'+trip.id, {trigger: true});
+				var tripName = '<h4>'+trip.get('tripName')+'</h4><p>'+trip.get('address')+'<br>'+trip.get('tripStart').toDateString()+' thru '+trip.get('tripEnd').toDateString()+'</p><a href=#trip/'+trip.id+'>Edit Trip</a>';
+				var marker = new google.maps.Marker({
+					position: myLatLng,
+					map: this.state.map,
+					title: trip.get('tripName')
+				});
+				var infowindow = new google.maps.InfoWindow({
+					content: tripName
+				});
+				marker.addListener('click', () => {
+					infowindow.open(this.state.map, marker);
+				});
+				this.setState({newTrip: trip});
+				var statQuery = new Parse.Query(StatsModel);
+				statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+					(stats) => {
+						stats.forEach((stat)=>{
+							var trips = stat.get('trips');
+							stat.save({
+								trips: trips+1
+							})
+						})
+					},
+					(err) => {
+						console.log(err);
+					}
+				)
+				this.props.router.navigate('#trip/'+trip.id, {trigger: true});
+
 			},
 			(err) => {
 				console.log(err);

@@ -3,6 +3,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var SpotModel = require('../models/SpotModel');
 var TripModel = require('../models/TripModel');
+var StatsModel = require('../models/StatsModel');
 var AddMediaComponent = require('./AddMediaComponent');
 var BreadCrumbsBarComponent = require('./BreadCrumbsBarComponent');
 var AddJournalEntryComponent = require('./AddJournalEntryComponent');
@@ -17,7 +18,9 @@ module.exports = React.createClass({
 			spot: null,
 			newPic: null,
 			entries: [],
-			pictures: []
+			pictures: [],
+			editPic: [],
+			editEntry: []
 		}
 	},
 	componentWillMount: function() {
@@ -54,6 +57,19 @@ module.exports = React.createClass({
 		)
 	},
 	render: function() {
+		var pictureList = [];
+		var entryList = [];
+		
+		pictureList = this.state.pictures.map(function(picture){
+			return(
+				<option key={picture.id} value={picture.id}>{picture.get('title')}</option>
+			)
+		})
+		entryList = this.state.entries.map(function(entry) {
+			return(
+				<option key={entry.id} value={entry.id}>{entry.get('title')}</option>
+			)
+		})
 		return (
 			<div>
 				<h1 className="pageHeader">{this.state.spot ? this.state.spot.get('spotName') : ''}</h1>
@@ -129,15 +145,34 @@ module.exports = React.createClass({
 							<hr/>
 							<form>
 								<div className="form-group xs-col-6">
-									<input type="text" ref="edit" className="form-control" id="blogTitle" placeholder="Title"/>
+									<label>Change Spot Name</label>
+									<input type="text" ref="editSpotTitle" className="form-control" id="blogTitle" />
 								</div>
-								<div className="form-group">
-									<textarea ref="edit2" className="form-control" rows="6" placeholder="Trip Memories Go Here!"></textarea>
+								<div className="form-group xs-col-6">
+									<label>Spot Start </label>
+									<input ref="startDate" type="date"/>
+									<label> Spot End </label>
+									<input ref="endDate" type="date"/>
+								</div>
+								<div className="form-group xs-col-6">
+									<label>Edit Picture Info</label>
+									<select ref="picList" className="form-control">
+										{pictureList}
+									</select>
+									<button onClick={this.editPic} type="button" className="selectOption">Select</button><br/>
+									{this.state.editPic}
+
+									<label>Edit Journal Entry Info</label>
+									<select ref="entryList" className="form-control">
+										{entryList}
+									</select>
+									<button onClick={this.editEntry} type="button" className="selectOption">Select</button>
+									{this.state.editEntry}
 								</div>
 							</form>
 							 <div className="modal-footer">
 								<button onClick={this.closeModal} type="button" className="btn btn-default cancel" data-dismiss="modal">Cancel</button>
-								<button  type="button" className="btn btn-primary">Save</button>
+								<button onClick={this.changeSpotInfo} type="button" className="btn btn-primary">Save</button>
 							</div>
 						</div>
 					</div>
@@ -145,7 +180,7 @@ module.exports = React.createClass({
 				<div id="modelier" className="modal modaly fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
 					<div className="modal-dialog modal-lg">
 						<div className="modal-content inputModal">
-							<h1>Remove Trip</h1>
+							<h1 className="deleteHeader">Remove Spot</h1>
 							<hr/>
 							<div className="alert alert-danger" role="alert">
 								<p>
@@ -159,13 +194,121 @@ module.exports = React.createClass({
 							</div>
 							<div className="modal-footer">
 								<button onClick={this.closeOtherModal} type="button" className="btn btn-default cancel" data-dismiss="modal">Cancel</button>
-								<button onClick={this.deleteTrip} className="btn btn-primary">Destroy Forever :(</button>
+								<button onClick={this.deleteTrip} className="btn btn-danger">Destroy Forever</button>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		);
+	},
+	editPic: function() {
+		this.found = this.state.pictures.find((element, index) => {
+			if (element.id === this.refs.picList.value)
+				return element;
+		})
+		this.state.editPic = [];
+		this.state.editPic.push(
+			<div key={this.found.id} className="form-group xs-col-6">
+				<label>Picture Title</label>
+				<input type="text" maxLength="20" className="form-control" defaultValue={this.found.get('title')} id="pictureTitleChange" />
+				<textarea maxLength="50" className="form-control" rows="2" defaultValue={this.found.get('caption')} id="pictureCaptionChange"/>
+				<button className="selectOption" onClick={this.savePicChanges}>Save Changes</button><button className="selectOption" onClick={this.deleteOnePicture}>Delete Picture</button>
+			</div>
+		);
+		this.setState({editPic: this.state.editPic});
+	},
+	savePicChanges: function() {
+		this.found.save({
+			title: document.getElementById('pictureTitleChange').value,
+			caption: document.getElementById('pictureCaptionChange').value
+		})
+		$('#modaly').modal('hide');
+		this.setState({needChange: 1});
+	},
+	editEntry: function() {
+		this.entryFound = this.state.entries.find((element, index) => {
+			if (element.id === this.refs.entryList.value)
+				return element;
+		})
+		this.state.editEntry = [];
+		this.state.editEntry.push(
+			<div key={this.entryFound.id} className="form-group xs-col-6">
+				<label>Entry Title</label>
+				<input type="text" className="form-control" defaultValue={this.entryFound.get('title')} id="entryTitleChange" />
+				<textarea className="form-control" rows="4" defaultValue={this.entryFound.get('entry')} id="entryChange"/>
+				<button className="selectOption" onClick={this.saveEntryChanges}>Save Changes</button><button className="selectOption" onClick={this.deleteOneEntry}>Delete Entry</button>
+			</div>
+		);
+		this.setState({editEntry: this.state.editEntry});
+	},
+	saveEntryChanges: function() {
+		console.log('entryChange');
+		this.entryFound.save({
+			title: document.getElementById('entryTitleChange').value,
+			entry: document.getElementById('entryChange').value
+		})
+		$('#modaly').modal('hide');
+		this.setState({needChange: 1});
+	},
+	deleteOnePicture: function() {
+		var answer = confirm('This Picture Will be permanetly deleted!');
+		if (answer) {
+			this.found.destroy({
+				success: (object) => {
+					var statQuery = new Parse.Query(StatsModel);
+					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+						(stats) => {
+							stats.forEach((stat)=>{
+								var pics = stat.get('pictures');
+								stat.save({
+									pictures: pics-1
+								})
+							})
+						},
+						(err) => {
+							console.log(err);
+						}
+					)
+					console.log(object, ' has been permanetly deleted');
+					
+				},
+				error: (object) => {
+					console.log('error deleting ', object)
+				}
+			})
+			$('#modaly').modal('hide');
+			this.setState({needChange: 1});
+		}
+	},
+	deleteOneEntry: function() {
+		var answer = confirm('This Journal Entry will be permanetly deleted!');
+		if (answer) {
+			this.entryFound.destroy({
+				success: (object) => {
+					var statQuery = new Parse.Query(StatsModel);
+					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+						(stats) => {
+							stats.forEach((stat)=>{
+								var blogs = stat.get('blogs');
+								stat.save({
+									blogs: blogs-1
+								})
+							})
+						},
+						(err) => {
+							console.log(err);
+						}
+					)
+					console.log(object, 'has been permanetly deleted');
+				},
+				error: (object) => {
+					console.log('error deleting ', object);
+				}
+			})
+			$('#modaly').modal('hide');
+			this.setState({needChange: 1});
+		}
 	},
 	onPictureQuery: function(pictures) {
 		this.setState({pictures: pictures})
@@ -176,15 +319,24 @@ module.exports = React.createClass({
 	onModalShow: function() {
 		$(this.refs.myModal).modal('show');
 	},
-	onPicModalShow: function(e) {
+	onPicModalShow: function() {
 		$(this.refs.picModal).modal('show');
 	},
-	onFullPicModalShow: function(e) {
+	onFullPicModalShow: function() {
 		$(this.refs.picture.id)
 	},
 	clearInput: function() {
 		this.refs.journalTitle.value = '';
 		this.refs.entry.value = '';
+	},
+	changeSpotInfo: function() {
+		this.state.spot.save({
+			spotName: this.refs.editSpotTitle.value === '' ? this.state.trip.get('tripName') : this.refs.editSpotTitle.value,
+			spotDateStart: this.refs.startDate.value === '' ? new Date (this.state.spot.get('spotDateStart')) : new Date (this.refs.startDate.value),
+			spotDateEnd: this.refs.endDate.value === '' ? new Date (this.state.spot.get('spotDateEnd')) : new Date (this.refs.endDate.value)
+		})
+		$('#modaly').modal('hide');
+		this.forceUpdate();
 	},
 	addJournalEntry: function() {
 		var newEntry = new JournalEntryModel({
@@ -196,6 +348,20 @@ module.exports = React.createClass({
 		newEntry.save().then(
 			(entry) => {
 				this.setState({newEntry: entry})
+				var statQuery = new Parse.Query(StatsModel);
+				statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+					(stats) => {
+						stats.forEach((stat)=>{
+							var blogs = stat.get('blogs');
+							stat.save({
+								blogs: blogs+1
+							})
+						})
+					},
+					(err) => {
+						console.log(err);
+					}
+				)
 				this.dispatcher.trigger('entryAdded', entry);
 			}
 		);
@@ -219,6 +385,20 @@ module.exports = React.createClass({
 		pic.save().then((pic) => {
 			console.log(pic);
 			this.setState({newPic: pic});
+			var statQuery = new Parse.Query(StatsModel);
+			statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+				(stats) => {
+					stats.forEach((stat)=>{
+						var pics = stat.get('pictures');
+						stat.save({
+							pictures: pics+1
+						})
+					})
+				},
+				(err) => {
+					console.log(err);
+				}
+			)
 			if (this.refs.feature.value === 'yes') {
 				this.state.spot.get('tripId').save({
 					featurePic: pic
@@ -260,6 +440,26 @@ module.exports = React.createClass({
 			this.state.spot.destroy({
 				success: function(object) {
 					console.log(object, ' has been permanetly deleted');
+					var statQuery = new Parse.Query(StatsModel);
+					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+						(stats) => {
+							stats.forEach((stat)=>{
+								var pics = stat.get('pictures');
+								var blogs = stat.get('blogs');
+								var spots = stat.get('spots');
+								pics > 0 ? pics = pics - 1 : pics = pics;
+								blogs > 0 ? blogs = blogs - 1: blogs = blogs;
+								stat.save({
+									pictures: pics,
+									blogs: blogs,
+									spots: spots - 1
+								})
+							})
+						},
+						(err) => {
+							console.log(err);
+						}
+					)
 				},
 				error: function(object) {
 					console.log('error deleting ', object)

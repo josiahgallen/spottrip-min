@@ -33,7 +33,7 @@ module.exports = React.createClass({
 		trips = this.state.trips.map(function(trip) {
 			return(
 				<div key={trip.id} className="col-md-6">
-					<div className="entryWrapper frontPageTripTile" style={trip.get('featurePic')? {backgroundImage: 'url('+trip.get('featurePic').get('picture').url()+')'} : {backgroundImage: 'url(../images/mapPic.png)'}}>
+					<div className="entryWrapper frontPageTripTile" style={trip.get('featurePic') ? {backgroundImage: 'url('+trip.get('featurePic').get('picture').url()+')'} : {backgroundImage: 'url(../images/mapPic.png)'}}>
 						<div>
 							<a href={'#trip/'+trip.id} className="caption">
 								<h3>{trip.get('tripName').toUpperCase()}</h3>

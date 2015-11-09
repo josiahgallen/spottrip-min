@@ -1,5 +1,6 @@
 var React = require('react');
 var Backbone = require('backbone');
+var StatsModel = require('../models/StatsModel');
 
 module.exports = React.createClass({
 	getInitialState: function() {
@@ -84,12 +85,20 @@ module.exports = React.createClass({
 				password: this.refs.password.value,
 				email: this.refs.email.value,
 				firstName: this.refs.fName.value,
-				lastName: this.refs.lName.value,
-				//[trips,spots,blogs,pictures]
-				statsCounter: [0,0,0,0]
+				lastName: this.refs.lName.value
 			},
 			{
 				success: (u) => {
+					var travelStats = new StatsModel({
+						trips: 0,
+						spots: 0,
+						pictures: 0,
+						blogs: 0,
+						travelRank: 'Beginner',
+						userId: user
+
+					});
+					travelStats.save();
 					this.props.router.navigate('profile', {trigger: true});
 				},
 				error: (u, error) => {

@@ -3,6 +3,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var TripModel = require('../models/TripModel');
 var SpotModel = require('../models/SpotModel');
+var StatsModel = require('../models/StatsModel');
 var PictureModel = require('../models/PictureModel');
 var JournalEntryModel = require('../models/JournalEntryModel');
 var PictureModalComponent = require('./PictureModalComponent');
@@ -177,7 +178,7 @@ module.exports = React.createClass({
 				<div id="modaly" className="modal modaly fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
 					<div className="modal-dialog modal-lg">
 						<div className="modal-content inputModal">
-							<h1>Edit</h1>
+							<h1>Edit Trip</h1>
 							<hr/>
 							<form>
 								<div className="form-group xs-col-6">
@@ -233,7 +234,6 @@ module.exports = React.createClass({
 		console.log('changing');
 		console.log(this.refs.feature.value);
 		this.state.trip.save({
-			tripId: this.state.trip.id,
 			tripName: this.refs.editTripTitle.value === '' ? this.state.trip.get('tripName') : this.refs.editTripTitle.value,
 			tripStart: this.refs.startDate.value === '' ? new Date (this.state.trip.get('tripStart')) : new Date (this.refs.startDate.value),
 			tripEnd: this.refs.endDate.value === '' ? new Date (this.state.trip.get('tripEnd')) : new Date (this.refs.endDate.value),
@@ -267,6 +267,20 @@ module.exports = React.createClass({
 						infowindow.open(this.state.map, marker);
 					});
 					this.setState({newSpot: spot});
+					var statQuery = new Parse.Query(StatsModel);
+					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+						(stats) => {
+							stats.forEach((stat)=>{
+								var spots = stat.get('spots');
+								stat.save({
+									spots: spots+1
+								})
+							})
+						},
+						(err) => {
+							console.log(err);
+						}
+					)
 					this.props.router.navigate('#spot/'+spot.id, {trigger: true});
 			},
 			(err) => {
@@ -310,6 +324,29 @@ module.exports = React.createClass({
 			});
 			this.state.trip.destroy({
 				success: function(object) {
+					var statQuery = new Parse.Query(StatsModel);
+					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
+						(stats) => {
+							stats.forEach((stat)=>{
+								var pics = stat.get('pictures');
+								var blogs = stat.get('blogs');
+								var spots = stat.get('spots');
+								var trips = stat.get('trips');
+								pics > 0 ? pics = pics - 1 : pics = pics;
+								blogs > 0 ? blogs = blogs - 1 : blogs = blogs;
+								spots > 0 ? spots = spots - 1 : spots = spots;
+								stat.save({
+									pictures: pics,
+									blogs: blogs,
+									spots: spots,
+									trips: trips - 1
+								})
+							})
+						},
+						(err) => {
+							console.log(err);
+						}
+					)
 					console.log(object, ' has been permanetly deleted');
 				},
 				error: function(object) {
