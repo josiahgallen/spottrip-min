@@ -20,7 +20,8 @@ module.exports = React.createClass({
 			entries: [],
 			pictures: [],
 			editPic: [],
-			editEntry: []
+			editEntry: [],
+			needChange: 0
 		}
 	},
 	componentWillMount: function() {
@@ -48,7 +49,6 @@ module.exports = React.createClass({
 						title: spot.get('spotName'),
 						animation: google.maps.Animation.DROP
 				});
-				console.log(spot.get('tripId').id);
 				this.setState({map: this.map, spot: spot, tripName: spot.get('tripId').get('tripName')});
 			},
 			(err) => {
@@ -60,7 +60,7 @@ module.exports = React.createClass({
 		var pictureList = [];
 		var entryList = [];
 		var slides = [];
-
+		var buttons = []
 		slides = this.state.pictures.map(function(picture, index){
 			var classNameString = 'item personalItem';
 			if(index === 0) {
@@ -76,7 +76,25 @@ module.exports = React.createClass({
 				</div>
 			)
 		})
-		
+		if(this.state.spot) {
+			if(Parse.User.current() && Parse.User.current().id === this.state.spot.get('tripId').get('userId').id) {
+				buttons.push(
+					<div key="origButtons">
+						<button onClick={this.onModalShow} title="Add Journal Entry" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
+						<br/>
+						<button onClick={this.onPicModalShow} title="Add Photo" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-camera" aria-hidden="true"></span></button>
+						<br/>
+						<button onClick={this.editTrip} title="Edit Spot" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
+						<br/>
+						<button onClick={this.deleteModal} title="Delete Spot" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+					</div>);
+
+				if(slides.length > 0) {
+					buttons.unshift(<div key="slideShowButton"><button onClick={this.onSlideShow} title="Launch Slide Show" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-blackboard" aria-hidden="true"></span></button>
+					<br/></div>)
+				}
+			}
+		}
 		pictureList = this.state.pictures.map(function(picture){
 			return(
 				<option key={picture.id} value={picture.id}>{picture.get('title')}</option>
@@ -87,9 +105,30 @@ module.exports = React.createClass({
 				<option key={entry.id} value={entry.id}>{entry.get('title')}</option>
 			)
 		})
+		this.dispatcher.on('picAdded', () => {
+			this.state.needChange++;
+			this.setState({needChange: this.state.needChange});
+		})
+		this.dispatcher.on('entryAdded', () => {
+			this.state.needChange++;
+			this.setState({needChange: this.state.needChange});
+		})
+		this.dispatcher.on('picDeleted', () => {
+			this.state.needChange++;
+			this.setState({needChange: this.state.needChange});
+		})
+		this.dispatcher.on('entryDeleted', () => {
+			this.state.needChange++;
+			this.setState({needChange: this.state.needChange});
+		})
+		this.dispatcher.on('changed', () => {
+			this.state.needChange++;
+			this.setState({needChange: this.state.needChange});
+		})
 		return (
 			<div>
 				<h1 className="pageHeader">{this.state.spot ? this.state.spot.get('spotName') : ''}</h1>
+				<h4 className="dateHeading">{this.state.spot ? this.state.spot.get('spotDateStart').toDateString() +' - '+ this.state.spot.get('spotDateEnd').toDateString() : ''}</h4>
 				<BreadCrumbsBarComponent>
 					<li><a href="#profile">Profile</a></li>
 					<li><a href={this.state.spot ? '#trip/'+this.state.spot.get('tripId').id : '#trip'}>My Trip</a></li>
@@ -101,15 +140,7 @@ module.exports = React.createClass({
 					</div>
 				</div>
 				<div className="addMediaButtonsWrapper">
-					<button onClick={this.onSlideShow} title="Launch Slide Show" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-blackboard" aria-hidden="true"></span></button>
-					<br/>
-					<button onClick={this.onModalShow} title="Add Journal Entry" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-pencil" aria-hidden="true"></span></button>
-					<br/>
-					<button onClick={this.onPicModalShow} title="Add Photo" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-camera" aria-hidden="true"></span></button>
-					<br/>
-					<button onClick={this.editTrip} title="Edit Spot" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
-					<br/>
-					<button onClick={this.deleteModal} title="Delete Spot" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+					{buttons}
 				</div>
 
 				<AddMediaComponent dispatcher={this.dispatcher} picture={this.state.newPic} spot={this.props.spot} onPictureQuery={this.onPictureQuery}/>
@@ -225,7 +256,6 @@ module.exports = React.createClass({
 							<div id="carousel-example-generic" className="carousel slide" data-ride="carousel">
 								
 								<div className="carousel-inner" role="listbox">
-									{slide1}
 									{slides}
 								</div> 
 								<a className="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
@@ -258,6 +288,7 @@ module.exports = React.createClass({
 			</div>
 		);
 		this.setState({editPic: this.state.editPic});
+		this.dispatcher.trigger('changed');
 	},
 	savePicChanges: function() {
 		this.found.save({
@@ -265,7 +296,7 @@ module.exports = React.createClass({
 			caption: document.getElementById('pictureCaptionChange').value
 		})
 		$('#modaly').modal('hide');
-		this.setState({needChange: 1});
+		this.dispatcher.trigger('changed');
 	},
 	editEntry: function() {
 		this.entryFound = this.state.entries.find((element, index) => {
@@ -282,6 +313,7 @@ module.exports = React.createClass({
 			</div>
 		);
 		this.setState({editEntry: this.state.editEntry});
+		this.dispatcher.trigger('changed');
 	},
 	saveEntryChanges: function() {
 		console.log('entryChange');
@@ -290,13 +322,21 @@ module.exports = React.createClass({
 			entry: document.getElementById('entryChange').value
 		})
 		$('#modaly').modal('hide');
-		this.setState({needChange: 1});
+		this.dispatcher.trigger('changed');
 	},
 	deleteOnePicture: function() {
 		var answer = confirm('This Picture Will be permanetly deleted!');
 		if (answer) {
 			this.found.destroy({
 				success: (object) => {
+					var filtered = 0;
+					this.state.pictures.forEach((element, index) => {
+						if (element.id === object.id) {
+							filtered = index;
+						}
+					})
+					filtered = this.state.pictures.splice(filtered,1);
+					this.setState({pictures: this.state.pictures});
 					var statQuery = new Parse.Query(StatsModel);
 					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
 						(stats) => {
@@ -319,7 +359,7 @@ module.exports = React.createClass({
 				}
 			})
 			$('#modaly').modal('hide');
-			this.setState({needChange: 1});
+			this.dispatcher.trigger('picDeleted');
 		}
 	},
 	deleteOneEntry: function() {
@@ -327,6 +367,14 @@ module.exports = React.createClass({
 		if (answer) {
 			this.entryFound.destroy({
 				success: (object) => {
+					var filtered = 0;
+					this.state.entries.forEach((element, index) => {
+						if (element.id === object.id) {
+							filtered = index;
+						}
+					})
+					filtered = this.state.entries.splice(filtered,1);
+					this.setState({entries: this.state.entries});
 					var statQuery = new Parse.Query(StatsModel);
 					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
 						(stats) => {
@@ -348,7 +396,7 @@ module.exports = React.createClass({
 				}
 			})
 			$('#modaly').modal('hide');
-			this.setState({needChange: 1});
+			this.dispatcher.trigger('entryDeleted');
 		}
 	},
 	onSlideShow: function() {
@@ -380,7 +428,7 @@ module.exports = React.createClass({
 			spotDateEnd: this.refs.endDate.value === '' ? new Date (this.state.spot.get('spotDateEnd')) : new Date (this.refs.endDate.value)
 		})
 		$('#modaly').modal('hide');
-		this.forceUpdate();
+		this.dispatcher.trigger('changed');
 	},
 	addJournalEntry: function() {
 		var newEntry = new JournalEntryModel({
@@ -419,7 +467,6 @@ module.exports = React.createClass({
 		var formatTitle = this.refs.title.value.split(' ').join('');
 		formatTitle.length > 0 ? picLabel = formatTitle : picLabel = 'picture';
 		var parseFile = new Parse.File(picLabel+'.png',file);
-		console.log('addPicture', this.props.spot);
 		var pic = new PictureModel({
 			spotId: new SpotModel({objectId:this.props.spot}),
 			title: this.refs.title.value,
@@ -466,6 +513,8 @@ module.exports = React.createClass({
 		console.log('start delete');
 		var answer = this.refs.deleteConfirm.value;
 		if(answer === this.state.spot.get('spotName')) {
+			var numPics = this.state.pictures.length;
+			var numEntries = this.state.entries.length;
 			Parse.Object.destroyAll(this.state.entries,{
 				success: function(entry) {
 					console.log('all journal entries destroyed')
@@ -488,16 +537,19 @@ module.exports = React.createClass({
 					var statQuery = new Parse.Query(StatsModel);
 					statQuery.equalTo('userId', new Parse.User({objectId: Parse.User.current().id})).find().then(
 						(stats) => {
-							stats.forEach((stat)=>{
+							stats.forEach((stat) => {
 								var pics = stat.get('pictures');
 								var blogs = stat.get('blogs');
 								var spots = stat.get('spots');
-								pics > 0 ? pics = pics - 1 : pics = pics;
-								blogs > 0 ? blogs = blogs - 1: blogs = blogs;
+								console.log(pics, blogs, spots);
+								spots = spots - 1;
+								pics = pics -  numPics;
+								blogs = blogs - numEntries;
+								console.log(pics, blogs, spots);
 								stat.save({
 									pictures: pics,
 									blogs: blogs,
-									spots: spots - 1
+									spots: spots
 								})
 							})
 						},

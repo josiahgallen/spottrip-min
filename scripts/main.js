@@ -13,10 +13,9 @@ var ProfileComponent = require('./components/ProfileComponent');
 var TripsComponent = require('./components/TripComponent');
 var SpotComponent = require('./components/SpotComponent');
 var CommunityPageComponent = require('./components/CommunityPageComponent');
+var _ = require('backbone/node_modules/underscore/underscore-min');
 
 Parse.initialize('SReTPFlNUeFnSqrBx33yNVHKDqR0jrY6BB2l6E47','XGMgOrJcA5H1O3jc7OwPVyt0n9oo6BXiJsD7Gptm');
-
-
 
 var Router = Backbone.Router.extend({
 	routes: {

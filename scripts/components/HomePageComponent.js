@@ -24,6 +24,11 @@ module.exports = React.createClass({
 	},
 	render: function() {
 		var trips = [];
+		var button = [];
+
+		if (!Parse.User.current()) {
+			button.push(<a key="button" className="featureButton"href="#register">Get Started Here</a>)
+		}
 		trips = this.state.trips.map(function(trip) {
 			return(
 				<div key={trip.id} className="col-md-6">
@@ -109,7 +114,7 @@ module.exports = React.createClass({
 						</div>
 					</div>
 					<div className="anchorWrapper">
-						<a className="featureButton"href="#register">Get Started Here</a>
+						{button}
 					</div>
 				</div>
 			</div>

@@ -27,6 +27,7 @@ module.exports = React.createClass({
 			$('#myInput').show()
 		})
 		var query = new Parse.Query(TripModel);
+		query.include('userId');
 		query.get(this.props.trip).then(
 			(trip) => {
 				this.setState({trip: trip});
@@ -128,7 +129,20 @@ module.exports = React.createClass({
 		var pictures = [];
 		var pictureList = [];
 		var entries = [];
+		var buttons = [];
 		
+		if(this.state.trip) {
+			if(Parse.User.current() && Parse.User.current().id === this.state.trip.get('userId').id) {
+				buttons.push(
+					<div key="buttons">
+						<button onClick={this.editTrip} title="Edit Trip" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
+						<br/>
+						<button onClick={this.deleteModal} title="Delete Trip" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+					</div>
+				)
+			}
+		}
+
 		myList = this.state.spots.map(function(spot) {
 			return(
 				<a key={spot.id} href={'#spot/'+spot.id} className="list-group-item"><strong>{spot.get('spotName')}</strong><div>{spot.get('spotDateStart').toDateString()} thru {spot.get('spotDateEnd').toDateString()}</div></a>
@@ -159,7 +173,7 @@ module.exports = React.createClass({
 				</BreadCrumbsBarComponent>
 				<h1 className="pageHeader">{this.state.trip ? this.state.trip.get('tripName') : ''}</h1>
 				<h4 className="dateHeading">{this.state.trip ? this.state.trip.get('tripStart').toDateString() +' - '+ this.state.trip.get('tripEnd').toDateString() : ''}</h4>
-				<SpotsPortalComponent myList={myList} newestListItem={newSpot} listTitle={'Trip Spots'}>
+				<SpotsPortalComponent router={this.props.router} myList={myList} newestListItem={newSpot} listTitle={'Trip Spots'}>
 					<div ref="map"></div>
 				</SpotsPortalComponent>
 				<div className="row">
@@ -171,9 +185,7 @@ module.exports = React.createClass({
 					</div>
 				</div>
 				<div className="addMediaButtonsWrapper">
-					<button onClick={this.editTrip} title="Edit Trip" type="button" className="btn btn-primary hoverButton bottomButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-edit" aria-hidden="true"></span></button>
-					<br/>
-					<button onClick={this.deleteModal} title="Delete Trip" type="button" className="btn btn-primary hoverButton" dataToggle="modal" dataTarget=".bs-example-modal-lg"><span className="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+					{buttons}
 				</div>
 				<div id="modaly" className="modal modaly fade bs-example-modal-lg" tabIndex="-1" role="dialog" ariaLabelledby="myLargeModalLabel">
 					<div className="modal-dialog modal-lg">
@@ -298,6 +310,9 @@ module.exports = React.createClass({
 		console.log('start delete');
 		var answer = this.refs.deleteConfirm.value;
 		if(answer === this.state.trip.get('tripName')) {
+			var numSpots = this.state.spots.length;
+			var numPics = this.state.pictures.length;
+			var numEntries = this.state.entries.length;
 			Parse.Object.destroyAll(this.state.entries,{
 				success: function(entry) {
 					console.log('all journal entries destroyed')
@@ -332,9 +347,9 @@ module.exports = React.createClass({
 								var blogs = stat.get('blogs');
 								var spots = stat.get('spots');
 								var trips = stat.get('trips');
-								pics > 0 ? pics = pics - 1 : pics = pics;
-								blogs > 0 ? blogs = blogs - 1 : blogs = blogs;
-								spots > 0 ? spots = spots - 1 : spots = spots;
+								pics = pics - numPics;
+								blogs = blogs - numEntries;
+								spots = spots - numSpots;
 								stat.save({
 									pictures: pics,
 									blogs: blogs,
