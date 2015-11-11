@@ -15,7 +15,7 @@ The user stories along with the current tasks and project progress are all avali
 [SpotTrip WireFrames PDF](/images/SpotTripWireFrames.pdf)
 
 ##Models
-[SpotTrip Data Models PDF](/images/SpotTripDataModels.pdf)
+[SpotTrip Data Models PDF](/images/SpotTripDataModels2.pdf)
 
 ##APIs, Plugins, Libraries, and Frameworks
 This App is powered by:
@@ -25,7 +25,6 @@ This App is powered by:
 *jQuery
 *Bootstrap
 *Parse
-*FilePicker
 *Google Maps API
 
 ##Contact the Developer
