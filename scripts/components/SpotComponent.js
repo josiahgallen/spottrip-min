@@ -28,6 +28,7 @@ module.exports = React.createClass({
 		$('#myModal').on('shown.bs.modal', function () {
 			$('#myInput').show();
 		})
+		
 		this.dispatcher = {};
 		_.extend(this.dispatcher, Backbone.Events);
 		var query = new Parse.Query(SpotModel);

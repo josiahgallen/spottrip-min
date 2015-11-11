@@ -46,7 +46,7 @@ module.exports = React.createClass({
 		})
 		return (
 			<div>
-				<div id="carousel-example-generic" className="carousel slide" data-ride="carousel">
+				<div id="carousel-example-generic" className="carousel slide" data-interval="10000" data-ride="carousel">
 					//Indicators
 					<ol className="carousel-indicators">
 						<li data-target="#carousel-example-generic" data-slide-to="0" className="active"></li>
